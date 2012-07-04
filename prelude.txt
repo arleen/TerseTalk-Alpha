@@ -1827,7 +1827,7 @@ meth gamefoo draw
  n = num rand: (zoo len).
  wid = se scr width.
  hei = se scr height.
- cx,cy = 8,8.
+ cx,cy = 8,0.
 
  t = Sys secs.
  WHILE{1} DO{
@@ -1839,8 +1839,21 @@ meth gamefoo draw
    IF{ t + 1 < Sys secs }THEN{
      cy = cy + 1.
      t = Sys secs.
-   }
- }
+   }.
+   IF{cy>27}THEN{
+     n = num rand: (zoo len).
+     cy = 0.
+   }.
+   
+   "TEMPORARY BOUNDARY CHECK UNTIL ROTATION/MORE ADVANCED CHECK ADDED"
+   IF{cx<0}THEN{
+     cx = 0.
+   }.
+   IF{cx>15}THEN{
+     cx = 15.
+   }.
+   "END OF TEMP BOUND CHECK"
+ }.
 
 meth GameFoo showZoo
   i= 0.

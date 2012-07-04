@@ -1,0 +1,102 @@
+From 37bec3600e530b43ecf1c138c53692de0245911e Mon Sep 17 00:00:00 2001
+From: tshanks <tshanks@gatech.edu>
+Date: Tue, 5 Jun 2012 23:22:03 -0400
+Subject: [PATCH] Added 2D matrix * 2-vector mult. (mxMult:)
+
+
+Signed-off-by: tshanks <tshanks@gatech.edu>
+---
+ terse-vm/prelude.txt              |    4 ++--
+ terse-vm/src/terse/vm/Static.java |    4 ++++
+ terse-vm/src/terse/vm/Terp.java   |    8 ++++++++
+ terse-vm/src/terse/vm/Ur.java     |   18 ++++++++++++++++++
+ 4 files changed, 32 insertions(+), 2 deletions(-)
+
+diff --git a/terse-vm/prelude.txt b/terse-vm/prelude.txt
+index 5e7d877..438953c 100644
+--- a/terse-vm/prelude.txt
++++ b/terse-vm/prelude.txt
+@@ -1805,7 +1805,7 @@ meth gamefoo draw
+  n = num rand: (zoo len).
+  wid = se scr width.
+  hei = se scr height.
+- cx,cy = 8,8.
++ cx,cy = 8,28.
+ 
+  t = Sys secs.
+  WHILE{1} DO{
+@@ -1815,7 +1815,7 @@ meth gamefoo draw
+    self showZoo.
+    self post.
+    IF{ t + 1 < Sys secs }THEN{
+-     cy = cy + 1.
++     cy = cy - 1.
+      t = Sys secs.
+    }
+  }
+diff --git a/terse-vm/src/terse/vm/Static.java b/terse-vm/src/terse/vm/Static.java
+index df50fcd..47358e0 100644
+--- a/terse-vm/src/terse/vm/Static.java
++++ b/terse-vm/src/terse/vm/Static.java
+@@ -184,6 +184,10 @@ public class Static {
+ 		return ints;
+ 	}
+ 
++	public static double[] doubles(double... doubles) {
++		return doubles;
++	}
++	
+ 	public static int[] emptyInts = new int[0];
+ 
+ 	public static int[] append(int[] arr, int s) {
+diff --git a/terse-vm/src/terse/vm/Terp.java b/terse-vm/src/terse/vm/Terp.java
+index 882093c..b51b3e4 100644
+--- a/terse-vm/src/terse/vm/Terp.java
++++ b/terse-vm/src/terse/vm/Terp.java
+@@ -384,6 +384,14 @@ public abstract class Terp extends Static {
+ 		}
+ 		return z;
+ 	}
++	
++	final public Vec newVec(double[] a) {
++		Vec z = new Vec(this);
++		for (int i = 0; i < a.length; ++i) {
++			z.vec.add(newNum(a[i]));
++		}
++		return z;
++	}
+ 
+ 	final public Vec mkStrVec(String... strs) {
+ 		Ur[] arr = new Ur[strs.length];
+diff --git a/terse-vm/src/terse/vm/Ur.java b/terse-vm/src/terse/vm/Ur.java
+index 350a90d..2e7b0dd 100644
+--- a/terse-vm/src/terse/vm/Ur.java
++++ b/terse-vm/src/terse/vm/Ur.java
+@@ -2002,6 +2002,24 @@ public class Ur extends Static implements Comparable {
+ 			return terp().newStr(sb.toString());
+ 		}
+ 
++		// =meth Vec "matrix" mxMult:
++		// "multiply this 2x2 (2D) matrix (for transforms, etc) by the provided 2-vector (point, ...)"
++		public Vec mxMult_(Vec xy) {
++			// must it
++			double x = xy.vec.get(0).mustNum().num;
++			double y = xy.vec.get(1).mustNum().num;
++			
++			ArrayList<Ur> ab = this.vec.get(0).mustVec().vec;
++			ArrayList<Ur> cd = this.vec.get(1).mustVec().vec;
++			
++			double a = ab.get(0).mustNum().num;
++			double b = ab.get(1).mustNum().num;
++			double c = cd.get(0).mustNum().num;
++			double d = cd.get(1).mustNum().num;
++						
++			return cls.terp.newVec(doubles(a*x+b*y, c*x+d*y));
++		}
++		
+ 		private void implodeRecursive(StringBuilder sb) {
+ 			final int n = vec.size();
+ 			for (int i = 0; i < n; i++) {
+-- 
+1.7.9.5
+
